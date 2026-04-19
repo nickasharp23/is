@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Pokémon TCG Pack Simulator</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+      background: radial-gradient(circle, #0b1020, #020617);
+      color: white;
+    }
+
+    h1 { margin-bottom: 5px; }
+
+    button {
+      padding: 10px 16px;
+      margin: 6px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+      background: #2563eb;
+      color: white;
+      transition: 0.2s;
+    }
+
+    button:hover { transform: scale(1.05); }
+
+    #topBar {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 10px;
+    }
+
+    #pack {
+      width: 180px;
+      height: 240px;
+      margin: 20px auto;
+      background: linear-gradient(135deg, #1f2937, #111827);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 0 25px rgba(255,255,255,0.08);
+      transition: 0.3s;
+    }
+
+    #pack.shake {
+      animation: shake 0.5s;
+    }
+
+    @keyframes shake {
+      0% { transform: rotate(0); }
+      25% { transform: rotate(2deg); }
+      50% { transform: rotate(-2deg); }
+      75% { transform: rotate(2deg); }
+      100% { transform: rotate(0); }
+    }
+
+    #cards {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    /* CARD */
+    .card {
+      width: 130px;
+      height: 180px;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      opacity: 0;
+      transform: scale(0.5) rotateY(90deg);
+      animation: flip 0.5s forwards;
+      position: relative;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+    }
+
+    @keyframes flip {
+      to {
+        opacity: 1;
+        transform: scale(1) rotateY(0);
+      }
+    }
+
+    .common { background: #475569; }
+    .rare { background: #2563eb; box-shadow: 0 0 10px #3b82f6; }
+    .ultra { background: #a855f7; box-shadow: 0 0 15px #a855f7; }
+    .legendary {
+      background: linear-gradient(135deg, gold, orange);
+      color: black;
+      box-shadow: 0 0 25px gold;
+      transform: scale(1.1);
+    }
+
+    /* SHINY */
+    .shiny::after {
+      content: "";
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(120deg, transparent, rgba(255,255,255,0.5), transparent);
+      animation: shine 1s infinite;
+      border-radius: 12px;
+    }
+
+    @keyframes shine {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    /* ===================== */
+    /* 🎆 POKÉMON POP EFFECT */
+    /* ===================== */
+
+    .pokeImg {
+      width: 80px;
+      height: 80px;
+      opacity: 0;
+      transform: scale(0.2);
+      animation: pokePop 0.4s ease forwards;
+    }
+
+    .pokeName {
+      margin-top: 6px;
+      opacity: 0;
+      transform: translateY(10px);
+      animation: namePop 0.4s ease forwards;
+      animation-delay: 0.15s;
+    }
+
+    @keyframes pokePop {
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @keyframes namePop {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    #shop, #collection {
+      margin-top: 20px;
+    }
+
+    .panel {
+      background: rgba(255,255,255,0.05);
+      padding: 10px;
+      border-radius: 10px;
+      display: inline-block;
+      margin: 10px;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>🔥 TCG Pack Simulator</h1>
+
+<div id="topBar">
+  <div class="panel">💰 Coins: <span id="coins">100</span></div>
+  <div class="panel">📦 Packs: <span id="packs">1</span></div>
+</div>
+
+<div id="shop">
+  <button onclick="buyPack()">Buy Pack (50 coins)</button>
+  <button onclick="resetGame()">Reset</button>
+</div>
+
+<div id="pack" onclick="openPack()">CLICK PACK TO OPEN</div>
+
+<div id="cards"></div>
+
+<div id="collection">
+  <h3>Your Collection</h3>
+  <div id="colList"></div>
+</div>
+
+<script>
+
+const pokemon = [
+  "Bulbasaur","Ivysaur","Venusaur","Charmander","Charmeleon","Charizard",
+  "Squirtle","Wartortle","Blastoise","Pikachu","Raichu","Eevee",
+  "Snorlax","Gengar","Dragonite","Mew","Mewtwo","Lapras",
+  "Gyarados","Arcanine","Jolteon","Flareon","Vaporeon"
+];
+
+let coins = 100;
+let packs = 1;
+const totalCards = 5;
+
+let collection = JSON.parse(localStorage.getItem("collection") || "[]");
+
+function save() {
+  localStorage.setItem("collection", JSON.stringify(collection));
+}
+
+function updateUI() {
+  document.getElementById("coins").innerText = coins;
+  document.getElementById("packs").innerText = packs;
+
+  document.getElementById("colList").innerHTML =
+    collection.map(c => "• " + c).join("<br>");
+}
+
+function buyPack() {
+  if (coins < 50) return alert("Not enough coins!");
+  coins -= 50;
+  packs++;
+  updateUI();
+}
+
+function getRarity(i) {
+  if (i === totalCards - 1) return "legendary";
+
+  let r = Math.random();
+  if (r < 0.55) return "common";
+  if (r < 0.78) return "rare";
+  if (r < 0.93) return "ultra";
+  return "legendary";
+}
+
+function openPack() {
+  if (packs <= 0) return alert("Buy a pack!");
+
+  document.getElementById("pack").classList.add("shake");
+
+  setTimeout(() => {
+    document.getElementById("pack").classList.remove("shake");
+    revealCards();
+  }, 500);
+}
+
+function revealCards() {
+  document.getElementById("cards").innerHTML = "";
+  packs--;
+
+  for (let i = 0; i < totalCards; i++) {
+    setTimeout(() => {
+
+      let poke = pokemon[Math.floor(Math.random() * pokemon.length)];
+      let rarity = getRarity(i);
+      let shiny = Math.random() < 0.08;
+
+      let card = document.createElement("div");
+      card.classList.add("card", rarity);
+      if (shiny) card.classList.add("shiny");
+
+      // IMAGE
+      let img = document.createElement("img");
+      img.classList.add("pokeImg");
+      img.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${getId(poke)}.png`;
+
+      // NAME
+      let name = document.createElement("div");
+      name.classList.add("pokeName");
+      name.innerText = (shiny ? "✨ " : "") + poke.toUpperCase();
+
+      card.appendChild(img);
+      card.appendChild(name);
+
+      document.getElementById("cards").appendChild(card);
+
+      collection.push(poke + (shiny ? " ✨" : ""));
+      save();
+
+      coins += rarity === "legendary" ? 100 : rarity === "ultra" ? 10 : 2;
+
+      updateUI();
+
+    }, i * 450);
+  }
+}
+
+function getId(name) {
+  const map = {
+    bulbasaur:1, ivysaur:2, venusaur:3,
+    charmander:4, charmeleon:5, charizard:6,
+    squirtle:7, wartortle:8, blastoise:9,
+    pikachu:25, raichu:26, eevee:133,
+    snorlax:143, gengar:94, dragonite:149,
+    mew:151, mewtwo:150, lapras:131,
+    gyarados:130, arcanine:59, jolteon:135,
+    flareon:136, vaporeon:134
+  };
+  return map[name.toLowerCase()] || 25;
+}
+
+function resetGame() {
+  localStorage.clear();
+  coins = 100;
+  packs = 1;
+  collection = [];
+  updateUI();
+}
+
+updateUI();
+
+</script>
+<a href="file:///Users/nicksharp/Desktop/startbootstrap-clean-blog-gh-pages%202/fromscratch.html#top"> Go To From Scratch Page</a>
+
+</body>
+
+</html>

@@ -1,0 +1,100 @@
+.image-row {
+    display: flex;          /* puts images side by side */
+    justify-content: center;
+    gap: 20px;              /* space between images */
+}
+
+.image-row img {
+    width: 150px;           /* shrink images */
+    height: auto;           /* keeps proportions */
+    border-radius: 10px;    /* optional: makes it look nicer */
+}
+.video-container {
+    display: flex;
+    justify-content: center;
+    margin: 40px 0;
+}
+
+.video-container iframe {
+    width: 80%;
+    max-width: 700px;
+    height: 400px;
+    border-radius: 10px;
+}
+body {
+    background: 
+        linear-gradient(rgba(82, 255, 220, 0.742), rgba(0,0,0,0.5)),
+        url("images/soccerpic.png");
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed; /* cool scrolling effect */
+    color: rgb(0, 0, 0);
+}
+/* STYLE 1: Body (font + color) */
+body {
+    font-family: Arial, Helvetica, sans-serif;  /* font family ✅ */
+    color: white;                               /* font color ✅ */
+    background: linear-gradient(to right, #0a0f2c, #1e3c72);
+    margin: 0;
+}
+
+/* STYLE 2: Header */
+.header {
+    background-color: #11184d;
+    padding: 30px;
+    text-align: center;
+    font-size: 28px;
+}
+
+/* STYLE 3: About Section */
+.about {
+    background-color: #1e2a78;
+    padding: 20px;
+    margin: 20px;
+    border-radius: 10px;
+}
+
+/* STYLE 4: Info Section */
+.info {
+    background-color: #2d3dbb;
+    padding: 20px;
+    margin: 20px;
+    border-radius: 10px;
+}
+
+/* STYLE 5: Footer */
+.footer {
+    background-color: black;
+    padding: 15px;
+    text-align: center;
+}
+
+/* BONUS: Make lists look nicer */
+li {
+    margin: 10px 0;
+    font-weight: bold;
+}
+.rotate-left {
+    transform: rotate(-90deg);
+}
+a {
+  display: inline-block;
+  padding: 10px 16px;
+  background-color: #2563eb;  /* blue */
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+a:hover {
+  background-color: #1d4ed8;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+a:active {
+  transform: scale(0.97);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
